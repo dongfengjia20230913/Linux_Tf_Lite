@@ -1,48 +1,13 @@
-上接：
+## 安装交叉编译包 ##
 
-Linux手上构建Tensorflow lite
+交叉编译是在一个平台上生成另一个平台上的可执行代码
 
-上一边文章，我们构建了最简单的minimal的例子，本章节，我们编译下label_image的例子
-
-为了编译label_image的例子，我们修改了buid和Makefile文件，是的可以指定编译任何的实例；
-修改后的文件为
-[build文件内容](https://github.com/jdf-eng/Linux_Tf_Lite/blob/master/build_common.sh)
-
-[MakeFile文件内容](https://github.com/jdf-eng/Linux_Tf_Lite/blob/master/MakeCommonfile)
-
-
-## 编译 ##
-
-label_image的build_common.sh文件为
+要使用 TensorFlow Lite 交叉编译功能，应先安装工具链和相关的库。
 
 ```
-set -x
-set -e # if any express return fale, exit!
-
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TENSORFLOW_DIR="${SCRIPT_DIR}/../../../.."
-
-FREE_MEM="$(free -m | awk '/^Mem/ {print $2}')"
-# Use "-j 4" only memory is larger than 2GB
-if [[ "FREE_MEM" -gt "2000" ]]; then
-  NO_JOB=4
-else
-  NO_JOB=1
-fi
-
-#code enter fiter
-
-make -j ${NO_JOB}  -C "${TENSORFLOW_DIR}" -f tensorflow/lite/tools/make/MakeCommonfile TARGET_PROGRAM_SRCS="\ tensorflow/lite/examples/label_image/label_image.cc	\tensorflow/lite/examples/label_image/bitmap_helpers.cc"
-
-```
-
-编译成功后，会在响应目录生成可执行文件
-
-```
-~tensorflow/lite/tools/make/gen/linux_x86_64/bin$ ls
-benchmark_model  benchmark_model_performance_options  tf_common
-
+sudo apt-get update
+#安装后占用空间大小 15.4kb
+sudo apt-get install crossbuild-essential-armhf
 ```
 
 ## 应用图像分类 ##
@@ -55,27 +20,3 @@ tensorflow/lite/tools/make/gen/linux_x86_64/bin$ ./tf_common  -v 1 -m ./mobilene
 
 ```
 
-
-图片加测结果：
-
-```
-average time: 407.108 ms 
-0.780392: 653 military uniform #%78概率是军装
-0.105882: 907 Windsor tie %10的概率是绳子
-0.0156863: 458 bow tie #领带
-0.0117647: 466 bulletproof vest #防弹衣
-0.00784314: 835 suit #西装
-```
-
-
-## 报错分析 ##
-
-```
-label_image.cc:(.text+0x39): undefined reference to `tflite::evaluation::CreateGPUDelegate()'
-/home/jiadongfeng/tensorflow/tensorflow-r2.2/tensorflow/lite/tools/make/gen/linux_x86_64/obj/tensorflow/lite/examples/label_image/label_image.o: In function `tflite::label_image::GetDelegates[abi:cxx11](tflite::label_image::Settings*)':
-label_image.cc:(.text+0xa2c): undefined reference to `tflite::evaluation::CreateHexagonDelegate(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, bool)'
-label_image.cc:(.text+0xb06): undefined reference to `tflite::evaluation::CreateNNAPIDelegate()'
-```
-
-修改方法：
-因为我的电脑不支持GPU加速，Intel的。将相关加速代码去除即可
