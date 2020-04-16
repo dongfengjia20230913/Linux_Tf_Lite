@@ -20,3 +20,7 @@ tensorflow/lite/tools/make/gen/linux_x86_64/bin$ ./tf_common  -v 1 -m ./mobilene
 
 ```
 
+
+openwrt编译提示version `GLIBC_2.27' not found错误
+
+
